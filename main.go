@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -14,6 +15,7 @@ import (
 var (
 	flPackageName  = flag.String("package", "version", "name for the generated golang package")
 	flVariableName = flag.String("variable", "VERSION", "variable name in the generated golang package")
+	flOutputFile   = flag.String("output", "", "output filename (default stdout)")
 )
 
 func main() {
@@ -27,6 +29,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var output io.Writer
+	if len(*flOutputFile) > 0 {
+		fh, err := os.Create(*flOutputFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer fh.Close()
+		output = fh
+	} else {
+		output = os.Stdout
+	}
+
 	vers, err := GitDescribe(cwd)
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +52,7 @@ func main() {
 		Version:  vers,
 	}
 
-	packageTemplate.Execute(os.Stdout, vp)
+	packageTemplate.Execute(output, vp)
 }
 
 // VersionPackage is the needed information to template a version package
