@@ -20,11 +20,11 @@ var (
 
 func main() {
 	flag.Parse()
-	cwd := "."
+	dir := "."
 	if flag.NArg() > 0 {
-		cwd = flag.Args()[0]
+		dir = flag.Args()[0]
 	}
-	cwd, err := filepath.Abs(cwd)
+	dir, err := filepath.Abs(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,12 +41,13 @@ func main() {
 		output = os.Stdout
 	}
 
-	vers, err := GitDescribe(cwd)
+	vers, err := GitDescribe(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
 	vp := VersionPackage{
 		Name:     *flPackageName,
+		Path:     dir,
 		Date:     time.Now(),
 		Variable: *flVariableName,
 		Version:  vers,
@@ -58,6 +59,7 @@ func main() {
 // VersionPackage is the needed information to template a version package
 type VersionPackage struct {
 	Name     string
+	Path     string
 	Date     time.Time
 	Variable string
 	Version  string
@@ -68,6 +70,7 @@ var packageLayout = `package {{.Name}}
 // AUTO-GENEREATED. DO NOT EDIT
 // {{.Date}}
 
+// {{.Variable}} is the generated version from {{.Path}}
 var {{.Variable}} = "{{.Version}}"
  `
 
